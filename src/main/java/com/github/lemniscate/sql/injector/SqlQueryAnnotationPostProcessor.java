@@ -19,18 +19,20 @@ import java.util.List;
 /**
  * @Author dave 1/22/15 1:17 PM
  */
-public class SqlAnnotationPostProcessor implements BeanPostProcessor {
+public class SqlQueryAnnotationPostProcessor implements BeanPostProcessor {
 
     private final Jaxb2Marshaller xmlMarshaller;
     private final ResourceLoader resourceLoader;
 
+    private String defaultPrefix = "classpath:sql/";
+    private String defaultSuffix = ".sql.xml";
 
-    public SqlAnnotationPostProcessor() {
+    public SqlQueryAnnotationPostProcessor() {
         this(JaxB(), new DefaultResourceLoader());
     }
 
     @Inject
-    public SqlAnnotationPostProcessor(Jaxb2Marshaller xmlMarshaller, ResourceLoader resourceLoader) {
+    public SqlQueryAnnotationPostProcessor(Jaxb2Marshaller xmlMarshaller, ResourceLoader resourceLoader) {
         this.xmlMarshaller = xmlMarshaller;
         this.resourceLoader = resourceLoader;
     }
@@ -60,7 +62,7 @@ public class SqlAnnotationPostProcessor implements BeanPostProcessor {
                 if (field.getAnnotation(SqlQuery.class) != null) {
                     SqlQuery annotation = field.getAnnotation(SqlQuery.class);
                     String fileName = annotation.resourcePath().isEmpty()
-                        ? "classpath:" + bean.getClass().getSimpleName() + ".xml"
+                        ? defaultPrefix + bean.getClass().getSimpleName() + defaultSuffix
                         : annotation.resourcePath();
                     String key = annotation.value().isEmpty() ? field.getName() : annotation.value();
                     String value = readQuery(fileName, key);
@@ -70,6 +72,22 @@ public class SqlAnnotationPostProcessor implements BeanPostProcessor {
         });
 
         return bean;
+    }
+
+    public String getDefaultPrefix() {
+        return defaultPrefix;
+    }
+
+    public void setDefaultPrefix(String defaultPrefix) {
+        this.defaultPrefix = defaultPrefix;
+    }
+
+    public String getDefaultSuffix() {
+        return defaultSuffix;
+    }
+
+    public void setDefaultSuffix(String defaultSuffix) {
+        this.defaultSuffix = defaultSuffix;
     }
 
     // TODO Unmarshal directly to a map, so we can get rid of these ugly classes

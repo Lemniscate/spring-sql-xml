@@ -1,6 +1,6 @@
-package test;
+package com.github.lemniscate.sql.injector;
 
-import com.github.lemniscate.sql.injector.SqlAnnotationPostProcessor;
+import com.github.lemniscate.sql.injector.SqlQueryAnnotationPostProcessor;
 import com.github.lemniscate.sql.injector.SqlQuery;
 import org.junit.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -11,7 +11,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @Author dave 1/22/15 1:24 PM
  */
-public class JaxBPlayground {
+public class SqlQueryAnnotationPostProcessorTest {
 
     public static class Example{
         @SqlQuery
@@ -25,13 +25,13 @@ public class JaxBPlayground {
     }
 
     public static class Example2{
-        @SqlQuery(resourcePath = "classpath:Example.xml")
+        @SqlQuery(resourcePath = "classpath:sql/Example.sql.xml")
         public String dummyQuery;
 
-        @SqlQuery(resourcePath = "classpath:Example.xml")
+        @SqlQuery(resourcePath = "classpath:sql/Example.sql.xml")
         public String dummyQuery2;
 
-        @SqlQuery(value="customKey", resourcePath = "classpath:Example.xml")
+        @SqlQuery(value="customKey", resourcePath = "classpath:sql/Example.sql.xml")
         public String thisIsDifferent;
     }
 
@@ -39,7 +39,7 @@ public class JaxBPlayground {
     public void testInjection(){
         DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
         bf.registerBeanDefinition("example", new RootBeanDefinition(Example.class));
-        bf.addBeanPostProcessor(new SqlAnnotationPostProcessor());
+        bf.addBeanPostProcessor(new com.github.lemniscate.sql.injector.SqlQueryAnnotationPostProcessor());
 
         Example ex = bf.getBean(Example.class);
         assertEquals(ex.dummyQuery, "select 1;");
@@ -51,7 +51,7 @@ public class JaxBPlayground {
     public void testInjectionAlternatePath(){
         DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
         bf.registerBeanDefinition("example", new RootBeanDefinition(Example2.class));
-        bf.addBeanPostProcessor(new SqlAnnotationPostProcessor());
+        bf.addBeanPostProcessor(new com.github.lemniscate.sql.injector.SqlQueryAnnotationPostProcessor());
 
         Example2 ex = bf.getBean(Example2.class);
         assertEquals(ex.dummyQuery, "select 1;");
