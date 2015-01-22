@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sql>
+    <query key="dummyQuery">select 1;</query>
+    <query key="dummyQuery2">
+        select 2;
+    </query>
+</sql>
