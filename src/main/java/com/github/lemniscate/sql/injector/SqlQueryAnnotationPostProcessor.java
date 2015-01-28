@@ -14,7 +14,7 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.util.List;
+import java.util.*;
 
 /**
  * @Author dave 1/22/15 1:17 PM
@@ -27,6 +27,9 @@ public class SqlQueryAnnotationPostProcessor implements BeanPostProcessor {
     private String defaultPrefix = "classpath:sql/";
     private String defaultSuffix = ".sql.xml";
 
+    private static final Map<String, Object> advised = new HashMap<String, Object>();
+    private static SqlQueryAnnotationPostProcessor instance;
+
     public SqlQueryAnnotationPostProcessor() {
         this(JaxB(), new DefaultResourceLoader());
     }
@@ -35,6 +38,7 @@ public class SqlQueryAnnotationPostProcessor implements BeanPostProcessor {
     public SqlQueryAnnotationPostProcessor(Jaxb2Marshaller xmlMarshaller, ResourceLoader resourceLoader) {
         this.xmlMarshaller = xmlMarshaller;
         this.resourceLoader = resourceLoader;
+        instance = this;
     }
 
     public String readQuery(String fileName, String key){
@@ -54,7 +58,7 @@ public class SqlQueryAnnotationPostProcessor implements BeanPostProcessor {
         return bean;
     }
 
-    public Object postProcessBeforeInitialization(final Object bean, String beanName) throws BeansException {
+    public Object postProcessBeforeInitialization(final Object bean, final String beanName) throws BeansException {
         ReflectionUtils.doWithFields(bean.getClass(), new ReflectionUtils.FieldCallback() {
             @SuppressWarnings("unchecked")
             public void doWith(Field field) throws IllegalArgumentException, IllegalAccessException {
@@ -67,11 +71,21 @@ public class SqlQueryAnnotationPostProcessor implements BeanPostProcessor {
                     String key = annotation.value().isEmpty() ? field.getName() : annotation.value();
                     String value = readQuery(fileName, key);
                     field.set(bean, value);
+                    advised.put(beanName, bean);
                 }
             }
         });
 
         return bean;
+    }
+
+    /**
+     * Convenience method to reload all the resource, which is helpful while in development
+     */
+    public static void reloadAllAdvised(){
+        for(String name : advised.keySet()){
+            instance.postProcessBeforeInitialization(advised.get(name), name);
+        }
     }
 
     public String getDefaultPrefix() {
